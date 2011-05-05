@@ -1,4 +1,3 @@
-
 #include <GL/glut.h>
 #include <math.h>
 
@@ -6,9 +5,9 @@
 #include "inverse.h"
 
 #define crossProduct(a,b,c) \
-	(a)[0] = (b)[1] * (c)[2] - (c)[1] * (b)[2]; \
-	(a)[1] = (b)[2] * (c)[0] - (c)[2] * (b)[0]; \
-	(a)[2] = (b)[0] * (c)[1] - (c)[0] * (b)[1];
+      (a)[0] = (b)[1] * (c)[2] - (c)[1] * (b)[2]; \
+      (a)[1] = (b)[2] * (c)[0] - (c)[2] * (b)[0]; \
+      (a)[2] = (b)[0] * (c)[1] - (c)[0] * (b)[1];
 
 int height, width, terrainWidth, terrainHeight, rows, cols;
 unsigned char *imagedata;
@@ -17,23 +16,26 @@ static GLfloat helicopterCameraPosX = 0;
 static GLfloat helicopterCameraPosY = -5;
 static GLfloat helicopterCameraPosZ = -10;
 
+// Random pre-generated number for placement/rotation of trees.
+GLfloat treePositions[30] = { 149, 159, 159, 142, 129, 139, 140, 142, 127, 118, 113, 155, 115, 108, 146, 145, 128, 140, 126, 104, 119, 110, 108, 151, 154, 140, 108, 151, 156, 144 };
+GLfloat treeRotations[30] = { 330, 309, 299, 192, 267, 65, 60, 321, 70, 160, 142, 19, 358, 335, 58 };
+
 // Textures
 GLuint textureTree,
-	groundTexture,
-	lakeTexture,
-	textureNegativeZ,
-	texturePositiveZ,
-	textureNegativeY,
-	texturePositiveY,
-	textureNegativeX,
-	texturePositiveX;
+      groundTexture,
+      lakeTexture,
+      textureNegativeZ,
+      texturePositiveZ,
+      textureNegativeY,
+      texturePositiveY,
+      textureNegativeX,
+      texturePositiveX;
 
 // Models
 Model* modelTree;
 Model* modelApache;
 Model* modelRotor;
 Model* modelBackRotor;
-//Model* modelTeaPot;
 
 // Array used to construct the ground plane.
 GLfloat groundVertices[4*1][3] = {{-100, 0, 100}, {-100, 0, -100}, { 100, 0, -100}, { 100, 0, 100}};
@@ -45,17 +47,22 @@ GLuint groundIndices[6] = { 2, 1, 0, 3, 2, 0 };
 
 GLfloat skyBoxSize;
 
-void norm(GLfloat* a) {
-/* norm(vec3) - Normalize the specified vector. */
+void norm(GLfloat* a)
+{
+  // Normalize vector.
+  // 	-- Normalize the specified vector.
+
   GLfloat l = sqrt(pow(a[0],2)+pow(a[1],2)+pow(a[2],2));
   a[0] = a[0]/l;
   a[1] = a[1]/l;
   a[2] = a[2]/l;
 }
 
-GLfloat getHeight(GLfloat x, GLfloat z) {
-/* getHeight(float, float) - Calculate the height (y-value) of the terrain surface at 
-	the specified (x,z) coordinate. */
+GLfloat getHeight(GLfloat x, GLfloat z)
+{
+  // Get the height of the terrain at the specified x and z world coordinates
+  // 	-- Calculates the height (y-value) of the terrain surface at the specified (x,z) world coordinate.
+
   // The height to return.
   GLfloat height;
 
@@ -93,19 +100,19 @@ GLfloat getHeight(GLfloat x, GLfloat z) {
   if (distTL < distBR) {
     // Get the height of the TopLeft-most point.
     GLfloat y = ((int)imagedata[(z2row*width + x2col)*3])*heightScale;
-    
+
     // Get the points of the triangle.
     GLfloat p1[3] = {x2col*tileWidth, curHeight, z2row*tileHeight};
     GLfloat p2[3] = {x2col*tileWidth, nextRowHeight, (z2row+1)*tileHeight};
     GLfloat p3[3] = {(x2col+1)*tileWidth, nextColHeight, z2row*tileHeight};
-    
+
     // Construct the normal of the Triangle
     GLfloat n[3] = {0};
     GLfloat v1[3] = {p3[0]-p1[0], p3[1]-p1[1], p3[2]-p1[2]};
     GLfloat v2[3] = {p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]};
     crossProduct(n,v2,v1);
     norm(n);
-    
+
     // Step 3: Get the height of the (x,z) coordinate by using the Plane equation.
     GLfloat d = n[0]*topleft[0] + n[1]*y + n[2]*topleft[1];
     height = (d-n[0]*realX-n[2]*realZ)/n[1];
@@ -134,30 +141,17 @@ GLfloat getHeight(GLfloat x, GLfloat z) {
   return height;
 }
 
-void renderGround()
-{
-  glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-  glBegin(GL_POLYGON);
-  glNormal3f(0, 1, 0);
-  glTexCoord2f(0, 10);
-  glVertex3f(-100, -0.1, 100);
-  glTexCoord2f(0, 0);
-  glVertex3f(100, -0.1, 100);
-  glTexCoord2f(10, 0);
-  glVertex3f(100, -0.1, -100);
-  glTexCoord2f(10, 10);
-  glVertex3f(-100, -0.1, -100);
-  glEnd();
-
-  glPopAttrib();
-}
-
 void renderTerrain()
 {
+  // Render the terrain
+  // 	-- Render the terrain using a heightmap
+
   glPushMatrix();
+
   glTranslatef(-terrainWidth/2,0,-terrainHeight/2);
+
   glBindTexture(GL_TEXTURE_2D, groundTexture);
+
   int row, col;
   float curPosS = 0;
   float curPosT = 0;
@@ -248,7 +242,12 @@ void renderTerrain()
   glPopMatrix();
 }
 
-void renderSkyBox() {
+void renderSkyBox()
+{
+  // Render the SkyBox.
+  // 	-- Renders the SkyBox sides and fixes them to the camera position.
+
+  // Make sure the SkyBox is fixed to the camera
   GLdouble skyBoxMatrix[16];
   GLdouble* cameraMatrix = getCameraMatrix();
   int i;
@@ -351,23 +350,17 @@ void renderSkyBox() {
   glLoadMatrixd(cameraMatrix);
 }
 
-void renderProps() {
-  // Draw a large Tree
-  glPushMatrix();
-  glRotatef(90, 0, 0, 1);
-  glTranslatef(0, 50, 0);
-  glBindTexture(GL_TEXTURE_2D, textureTree);
-  glVertexPointer(3, GL_FLOAT, 0, modelTree->vertexArray);
-  glNormalPointer(GL_FLOAT, 0, modelTree->normalArray);
-  glTexCoordPointer(2, GL_FLOAT, 0, modelTree->texCoordArray);
-  glDrawElements(GL_TRIANGLES, modelTree->numIndices, GL_UNSIGNED_INT, 
-		 modelTree->indexArray);
-  glPopMatrix();
+void renderProps()
+{
+  // Render props.
+  // 	-- Render some trees and stuff to make the world look more alive */
 
-  // Draw a smaller Tree
+  // Draw a Tree
+  int treeX, treeZ;
+  treeX = treeZ = 100;
   glPushMatrix();
-  glRotatef(90,0,0,1);
-  glTranslatef(0,40,-40);
+  glTranslatef(treeX, getHeight(treeX, treeZ), treeZ);
+  glRotatef(90, 0, 0, 1);
   glScalef(0.5,0.5,0.5);
   glBindTexture(GL_TEXTURE_2D, textureTree);
   glVertexPointer(3, GL_FLOAT, 0, modelTree->vertexArray);
@@ -376,10 +369,33 @@ void renderProps() {
   glDrawElements(GL_TRIANGLES, modelTree->numIndices, GL_UNSIGNED_INT, 
 		 modelTree->indexArray);
   glPopMatrix();
+
+  // Draw forest
+  int i;
+  for(i = 0; i < 15; i++) {
+    glPushMatrix();
+    treeX = treePositions[i];
+    treeZ = -treePositions[15+i];
+    glTranslatef(treeX, getHeight(treeX, treeZ), treeZ);
+    glRotatef(90,0,0,1);
+    glRotatef(treeRotations[i],1,0,0);
+    glScalef(0.3,0.3,0.3);
+    glBindTexture(GL_TEXTURE_2D, textureTree);
+    glVertexPointer(3, GL_FLOAT, 0, modelTree->vertexArray);
+    glNormalPointer(GL_FLOAT, 0, modelTree->normalArray);
+    glTexCoordPointer(2, GL_FLOAT, 0, modelTree->texCoordArray);
+    glDrawElements(GL_TRIANGLES, modelTree->numIndices, GL_UNSIGNED_INT, 
+                  modelTree->indexArray);
+    glPopMatrix();
+  }
+
 }
 
-void renderHelicopter() {
-  // Draw the helicopter
+void renderHelicopter()
+{
+  // Render the helicopter.
+  // 	-- Render the helicopter a fix position relative to the camera.
+  // 	-- Rotate the blades of the main and back rotors.
 
   // Copy the cameraMatrix.
   GLdouble helicopterMatrix[16];
@@ -407,35 +423,19 @@ void renderHelicopter() {
 
   // Load the helicopterMatrix instead of cameraMatrix.
   glLoadMatrixd(helicopterMatrix);
-  //glPushMatrix();
 
-  // The model is off 90 deg, rotate it.
+  // Move it to its position (relative to the camera) to achieve third person view.
   glTranslatef(helicopterCameraPosX,helicopterCameraPosY,helicopterCameraPosZ);
+  // The model is off 90 deg, rotate it.
   glRotatef(-90, 0,1,0);
+  // Make it rather small
   glScalef(0.35f,0.35f,0.35f);
 
-  /*GLdouble* cameraMatrix = getCameraMatrix();
-  GLdouble inverseCameraMatrix[16];
-  inverse(getCameraMatrix(), inverseCameraMatrix);
-  glLoadMatrixd(inverseCameraMatrix);
-  printf( "\nTHE INVERSE OF THE MATRIX:\n" );
-  int i, j, r;
-  r = 4;
-  for ( i = 0;i < r;i++ )
-  {
-  	for ( j = 0;j < r;j++ )
-  	{
-  		printf( "\t%f", inverseCameraMatrix[i*r+j] );
-  	}
-
-  	printf( "\n" );
-  }*/
-  //glScalef(10,10,10);
+  // Render the helicopter
   glVertexPointer(3, GL_FLOAT, 0, modelApache->vertexArray);
   glNormalPointer(GL_FLOAT, 0, modelApache->normalArray);
   glTexCoordPointer(2, GL_FLOAT, 0, modelApache->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelApache->numIndices, GL_UNSIGNED_INT, modelApache->indexArray);
-  //glPopMatrix();
 
   // Draw the main rotor
   glPushMatrix();
@@ -446,7 +446,7 @@ void renderHelicopter() {
   glTexCoordPointer(2, GL_FLOAT, 0, modelRotor->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelRotor->numIndices, GL_UNSIGNED_INT, modelRotor->indexArray);
   glPopMatrix();
-  
+
   // Draw the back rotor
   glPushMatrix();
   glTranslatef(11.7,3.8,1);
@@ -456,25 +456,63 @@ void renderHelicopter() {
   glTexCoordPointer(2, GL_FLOAT, 0, modelBackRotor->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelBackRotor->numIndices, GL_UNSIGNED_INT, modelBackRotor->indexArray);
   glPopMatrix();
-  
+
   // Load back the cameraMatrix again.
   glLoadMatrixd(cameraMatrix);
 }
 
-// Initialize!
+void handleCollisions()
+{
+  // Handle collisions.
+  // 	-- Check if the helicopter collides with the ground terrain
+
+  // Calculate the inverse camera matrix
+  GLdouble invCameraMatrix[16];
+  inverse(getCameraMatrix(), invCameraMatrix);
+
+  // Get the helicopter position (in camera coordinates)
+  GLdouble heliCameraVec[4] = { helicopterCameraPosX, helicopterCameraPosY, helicopterCameraPosZ, 1 };
+
+  // The vector to hold the world position of the helicopter
+  GLdouble heliWorldVec[4];
+  int index, multindex;
+
+  // TODO: REMOVE SINCE NOT NEEDED?
+  // Clear the previous position
+  for(index = 0; index < 4; index++) {
+    heliWorldVec[index] = 0;
+  }
+
+  // Get the new helicopter position in the world using the inverse camera matrix
+  // and the helicopter position (in camera coordinates)
+  for(index = 0; index < 4; index++) {
+    for(multindex = 0; multindex < 4; multindex++) {
+      heliWorldVec[index] += invCameraMatrix[(4*multindex)+index] * heliCameraVec[multindex];
+    }
+  }
+
+  GLfloat chopperH = getHeight(heliWorldVec[0], heliWorldVec[2]);
+
+  // Check for collision with ground
+  if(heliWorldVec[1] <= chopperH || chopperH == -1) {
+    printf("THE HELICOPTER CRASHED! THE APP TOO LOL :O\n");
+    exitGame();
+  }
+}
+
 void init()
 {
-  // Place one-time initialization code here
+  // Initialize!
+  // 	-- Place one-time initialization code here
 
   // Load models...
   modelTree = loadModel("models/tree.obj");
   modelApache = loadModel("models/apache/apache_wo_rotors.obj");
   modelRotor = loadModel("models/apache/main_rotor.obj");
   modelBackRotor = loadModel("models/apache/back_rotor.obj");
-  //modelTeaPot = loadModel("../models/various/teapot.obj");
- 
+
   // Load textures..
-  // An ordinary texture for the ground plane
+  // The texture used for the terrain
   groundTexture = loadTexture("textures/skybox/negativeY.jpg");//"../textures/TropicalFoliage0025_1_S.jpg");
 
   // Texture for the lake
@@ -484,15 +522,6 @@ void init()
   textureTree = loadTexture("textures/tree.jpg");
 
   // SkyBox textures
-  /*
-  textureNegativeZ = loadTexture("blue-sky.jpeg");
-  texturePositiveZ = textureNegativeZ;
-  textureNegativeY = textureNegativeZ;
-  texturePositiveY = textureNegativeZ;
-  textureNegativeX = textureNegativeZ;
-  texturePositiveX = textureNegativeZ;
-  */
-
   textureNegativeZ = loadTexture("textures/skybox/negativeZ.jpg");
   texturePositiveZ = loadTexture("textures/skybox/positiveZ.jpg");
   textureNegativeY = loadTexture("textures/skybox/negativeY.jpg");
@@ -500,17 +529,7 @@ void init()
   textureNegativeX = loadTexture("textures/skybox/negativeX.jpg");
   texturePositiveX = loadTexture("textures/skybox/positiveX.jpg");
 
-  /*
-  textureNegativeZ = loadTexture("../cubemaps/cubemap_berkeley/berkeley_negative_z.jpg");
-  texturePositiveZ = loadTexture("../cubemaps/cubemap_berkeley/berkeley_positive_z.jpg");
-  textureNegativeY = loadTexture("../cubemaps/cubemap_berkeley/berkeley_negative_y.jpg");
-  texturePositiveY = loadTexture("../cubemaps/cubemap_berkeley/berkeley_positive_y.jpg");
-  textureNegativeX = loadTexture("../cubemaps/cubemap_berkeley/berkeley_negative_x.jpg");
-  texturePositiveX = loadTexture("../cubemaps/cubemap_berkeley/berkeley_positive_x.jpg");
-  */
-
   // A heightmap image
-  //read_JPEG_file("asdf.jpeg", &imagedata, &height, &width);
   imagedata = readppm("textures/heightmap/terrain.ppm", &height, &width);
 
   // terrain and imagedata vars.
@@ -523,8 +542,6 @@ void init()
 
   // The size of the SkyBox
   skyBoxSize = 200;
-  //glutGameModeString("1024×768:32@60");
-  //glutEnterGameMode();
 }
 
 void display()
@@ -564,17 +581,9 @@ void display()
   glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuseColor);
   glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specularColor);
 
-  /*GLfloat ambientColor [] = { 0.0, 0.0, 0.0, 0.0 };
-  GLfloat diffuseColor[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat specularColor[] = { 1.0, 1.0, 1.0, 1.0 };
-  glLightfv(GL_LIGHT1, GL_AMBIENT, ambientColor);
-  glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseColor);
-  glLightfv(GL_LIGHT1, GL_SPECULAR, specularColor);*/
-
   // Enable lighting and light 0
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  //glEnable(GL_LIGHT1);
   glEnable(GL_NORMALIZE);
 
   // Enable Z-buffering
@@ -589,11 +598,6 @@ void display()
 
   glPushMatrix();
 
-  // Add a lightsource
-  //glMatrixMode(GL_MODELVIEW);
-  //GLfloat light_position2[] = { 20*sin(getElapsedTime()), 20, 20*cos(getElapsedTime()), 1.0 };
-  //GLfloat light_position2[] = { 0, 0, 0, 1.0 };
-
   // Enable texturing
   glEnable(GL_TEXTURE_2D);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -604,7 +608,7 @@ void display()
   // Render the terrain
   renderTerrain();
 
-  // Render some random props
+  // Render some random props (like trees)
   renderProps();
 
   // Disable textures
@@ -613,63 +617,14 @@ void display()
   glDisable(GL_TEXTURE_GEN_T);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  // TODO: REMOVE THIS! OR DO SOMETHING COOL.
-  GLdouble invCameraMatrix[16];
-  inverse(getCameraMatrix(), invCameraMatrix);
-  GLdouble heliCameraVec[4] = { helicopterCameraPosX, helicopterCameraPosY, helicopterCameraPosZ, 1 };
-  //GLdouble heliFwdCameraVec[4] = { helicopterCameraPosX, helicopterCameraPosY, helicopterCameraPosZ-10, 1 };
-  GLdouble heliWorldVec[4];
-  //GLdouble heliFwdWorldVec[4];
-  int index, multindex;
-  for(index = 0; index < 4; index++) {
-    heliWorldVec[index] = 0;
-  }
-  for(index = 0; index < 4; index++) {
-    for(multindex = 0; multindex < 4; multindex++) {
-      heliWorldVec[index] += invCameraMatrix[(4*multindex)+index] * heliCameraVec[multindex];
-      //heliFwdWorldVec[index] += invCameraMatrix[(4*multindex)+index] * heliFwdCameraVec[multindex];
-    }
-    //printf("%f,", heliWorldVec[index]);
-  }
-  //printf("\n");
-  /*GLdouble rotation[3] = {0};
-  GLdouble diffWorld[4];
-  GLdouble diffCamera[4];
-  int ind;
-  for(ind = 0; ind < 4; ind++)
-  diffWorld[ind] = heliFwdWorldVec[ind]-heliWorldVec[ind];
-  diffCamera[ind] = heliFwdCameraVec[ind]-heliCameraVec[ind];
-  crossProduct(rotation, diffWorld, diffCamera);
-  printf("(%f,%f,%f)\n", rotation[0], rotation[1], rotation[2]);*/
-
-  GLfloat chopperH = getHeight(heliWorldVec[0], heliWorldVec[2]);
-  //printf("Height at chopper: %f\n", chopperH);
-  // Check for collision with ground
-  if(heliWorldVec[1] <= chopperH || chopperH == -1) {
-    printf("THE HELICOPTER CRASHED! THE APP TOO LOL :O\n");
-    exitGame();
-  }
-
-  // TODO: REMOVE THIS! TEAPOT HITBOX STUFF
-  /*glPushMatrix();
-  glTranslatef(heliWorldVec[0], heliWorldVec[1], heliWorldVec[2]);
-  //glRotatef(90, 0, 0, 1);
-  //glBindTexture(GL_TEXTURE_2D, textureTree);
-  glVertexPointer(3, GL_FLOAT, 0, modelTeaPot->vertexArray);
-  glNormalPointer(GL_FLOAT, 0, modelTeaPot->normalArray);
-  glTexCoordPointer(2, GL_FLOAT, 0, modelTeaPot->texCoordArray);
-  glDrawElements(GL_TRIANGLES, modelTeaPot->numIndices, GL_UNSIGNED_INT, modelTeaPot->indexArray);
-  glPopMatrix();*/
-
-  //glPopMatrix();
+  // Check if the helicopter hits the ground (if so, exit!)
+  handleCollisions();
 
   // Update the camera (and helicopter) position
   updatePosition();
 
   // Render the helicopter
   renderHelicopter();
-
-  //glLoadMatrixd(getCameraMatrix());
 
   glPopAttrib();
 
@@ -696,14 +651,32 @@ int main(int argc, char **argv)
   //  - two sets of above mentioned buffers, so that
   //    doublebuffering is possible
   //
-  // Initial window size 800x800
   glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
 
-  if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+  // Print the title
+  printf("\nApache mod_helicopter\n\n");
+
+  // Handle arguments
+  int window_mode;
+  window_mode = 0;
+  // Use (forced) window mode?
+  if(argc > 1 && (strcmp(argv[1], "-w") == 0)) {
+    printf("	-w	Using window mode\n");
+    window_mode = 1;
+
+  }
+
+  // Clear some space before program output
+  printf("\n\n");
+
+  // Setup window (1024x768)
+  // Check if fullscreen is possible
+  if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE) && !(window_mode == 1)) {
+    // Start fullscreen game mode
     glutGameModeString("1024x768:32@60");
-    // start fullscreen game mode
     glutEnterGameMode();
   } else {
+    // Use regular window
     glutInitWindowSize(1024, 768);
     glutCreateWindow("Apache mod_helicopter");
   }
@@ -711,6 +684,7 @@ int main(int argc, char **argv)
   // Hide the mouse cursor
   glutSetCursor(GLUT_CURSOR_NONE);
 
+  // Initialize everything!
   initHelperLibrary();
   init();
 
