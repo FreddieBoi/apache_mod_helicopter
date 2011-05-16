@@ -24,6 +24,8 @@ GLfloat treeRotations[30] = { 330, 309, 299, 192, 267, 65, 60, 321, 70, 160, 142
 GLuint textureTree,
       groundTexture,
       lakeTexture,
+      helicopterTexture,
+      textureRotor,
       textureNegativeZ,
       texturePositiveZ,
       textureNegativeY,
@@ -432,18 +434,34 @@ void renderHelicopter()
   glScalef(0.35f,0.35f,0.35f);
 
   // Render the helicopter
+  glBindTexture(GL_TEXTURE_2D, helicopterTexture);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glEnable(GL_TEXTURE_GEN_S);
+  glEnable(GL_TEXTURE_GEN_T);
+  glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+  glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+
+  GLfloat planeS[] = {1, 0.0, 0.0, 1};
+  GLfloat planeT[] = {0.0, 1, 0.0, 1};
+  glTexGenfv(GL_S, GL_OBJECT_PLANE, planeS);
+  glTexGenfv(GL_T, GL_OBJECT_PLANE, planeT);
+
   glVertexPointer(3, GL_FLOAT, 0, modelApache->vertexArray);
   glNormalPointer(GL_FLOAT, 0, modelApache->normalArray);
-  glTexCoordPointer(2, GL_FLOAT, 0, modelApache->texCoordArray);
+  //glTexCoordPointer(2, GL_FLOAT, 0, modelApache->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelApache->numIndices, GL_UNSIGNED_INT, modelApache->indexArray);
+
+  glBindTexture(GL_TEXTURE_2D, textureRotor);
 
   // Draw the main rotor
   glPushMatrix();
   glTranslatef(0.1,4.9,-0.10);
   glRotatef(1*360*fmod(getElapsedTime(),60),0,1,0);
+  //glColorPointer(3, GL_FLOAT, 0, modelRotor->colorArray);
   glVertexPointer(3, GL_FLOAT, 0, modelRotor->vertexArray);
   glNormalPointer(GL_FLOAT, 0, modelRotor->normalArray);
-  glTexCoordPointer(2, GL_FLOAT, 0, modelRotor->texCoordArray);
+  //glTexCoordPointer(2, GL_FLOAT, 0, modelRotor->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelRotor->numIndices, GL_UNSIGNED_INT, modelRotor->indexArray);
   glPopMatrix();
 
@@ -453,7 +471,7 @@ void renderHelicopter()
   glRotatef(4*360*fmod(getElapsedTime(),60),0,0,1);
   glVertexPointer(3, GL_FLOAT, 0, modelBackRotor->vertexArray);
   glNormalPointer(GL_FLOAT, 0, modelBackRotor->normalArray);
-  glTexCoordPointer(2, GL_FLOAT, 0, modelBackRotor->texCoordArray);
+ //glTexCoordPointer(2, GL_FLOAT, 0, modelBackRotor->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelBackRotor->numIndices, GL_UNSIGNED_INT, modelBackRotor->indexArray);
   glPopMatrix();
 
@@ -521,6 +539,11 @@ void init()
   // Tree texture
   textureTree = loadTexture("textures/tree.jpg");
 
+  // Helicopter texture
+  helicopterTexture = loadTexture("textures/helicopter.jpg");
+
+  textureRotor = loadTexture("textures/rotor.jpg");
+
   // SkyBox textures
   textureNegativeZ = loadTexture("textures/skybox/negativeZ.jpg");
   texturePositiveZ = loadTexture("textures/skybox/positiveZ.jpg");
@@ -530,7 +553,7 @@ void init()
   texturePositiveX = loadTexture("textures/skybox/positiveX.jpg");
 
   // A heightmap image
-  imagedata = readppm("textures/heightmap/terrain.ppm", &height, &width);
+  imagedata = readppm("textures/heightmap/heightmap.ppm", &height, &width);
 
   // terrain and imagedata vars.
   terrainWidth = terrainHeight = 750;
@@ -575,11 +598,11 @@ void display()
   // Set default material properties
   GLfloat mat_shininess[] = { 50.0 };
   GLfloat mat_diffuseColor[] = { 1.0, 1.0, 1.0, 0.5 };
-  GLfloat mat_specularColor[] = { 1.0, 1.0, 1.0, 0.5 };
+  //GLfloat mat_specularColor[] = { 1.0, 1.0, 1.0, 0.5 };
 
   glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
   glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuseColor);
-  glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specularColor);
+  //glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specularColor);
 
   // Enable lighting and light 0
   glEnable(GL_LIGHTING);
@@ -611,12 +634,6 @@ void display()
   // Render some random props (like trees)
   renderProps();
 
-  // Disable textures
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_TEXTURE_GEN_S);
-  glDisable(GL_TEXTURE_GEN_T);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
   // Check if the helicopter hits the ground (if so, exit!)
   handleCollisions();
 
@@ -625,6 +642,12 @@ void display()
 
   // Render the helicopter
   renderHelicopter();
+
+    // Disable textures
+  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
   glPopAttrib();
 
