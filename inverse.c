@@ -9,19 +9,12 @@ void inverse(GLdouble* a, GLdouble* inver)
    // The order of the matrix.
     float k;
     k = 4;
-    //printf( "ENTER THE ORDER OF THE MATRIX:\n" );
-    //scanf( "%f", &k );
-    //printf( "ENTER THE ELEMENTS OF THE MATRIX:\n" );
     int i, j;
     for ( i = 0;i < k;i++ ) {
 	for ( j = 0;j < k;j++ ) {
 		b[i][j] = a[i*4+j];
-		// printf("%f",b[i][j]);
 	}
     }
- 
-    /*d = detrm( a, k );
-    printf( "THE DETERMINANT IS=%f", d );*/
  
     if (detrm(b, k) == 0)
         printf( "\nMATRIX IS NOT INVERSIBLE\n" );
@@ -35,10 +28,8 @@ void inverse(GLdouble* a, GLdouble* inver)
 	for ( i = 0;i < k;i++ ) {
 		for ( j = 0;j < k;j++ ){
 			inver[i*4+j] = myinv[i][j];
-			//printf("%f, ", inver[i*4+j]);
 		}
 	}
-	//printf("\n");
     }
 }
  
@@ -157,17 +148,5 @@ void trans(GLdouble num[4][4], GLdouble fact[4][4], GLdouble inv[4][4], float r)
                     inv[ i ][ j ] = b[ i ][ j ] / d;
                 }
         }
- 
-   /* printf( "\nTHE INVERSE OF THE MATRIX:\n" );
- 
-    for ( i = 0;i < r;i++ )
-        {
-            for ( j = 0;j < r;j++ )
-                {
-                    printf( "\t%f", inv[ i ][ j ] );
-                }
- 
-            printf( "\n" );
-        }*/
 
 }

@@ -643,7 +643,7 @@ void display()
   // Render the helicopter
   renderHelicopter();
 
-    // Disable textures
+  // Disable textures
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_TEXTURE_GEN_S);
   glDisable(GL_TEXTURE_GEN_T);

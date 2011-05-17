@@ -90,8 +90,6 @@ static void OBJGetToken(int * tokenType)
   if (c == 13 || c == 10)
     {
       *tokenType = crlfToken;
-      //		while (c == 13 && c == 10)
-      //				c = getc(fp);
     }
   else
     if ((c >= '0' && c <= '9') || c == '-' || c == '.') // Numerical value
@@ -193,15 +191,8 @@ static void SkipToCRLF()
   if (!atLineEnd)
     while (c != 10 && c != 13 && c != EOF)
       c = getc(fp);
-  //	while (tokenType != crlfToken && tokenType != kEOF)
-  //		OBJGetToken(&tokenType);
 }
 
-//static void SkipToCRLF(int tokenType)
-//{
-//	while (tokenType != crlfToken && tokenType != kEOF)
-//		OBJGetToken(&tokenType);
-//}
 
 static void ReadOneVertex(MeshPtr theMesh)
 {

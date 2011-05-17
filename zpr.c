@@ -21,12 +21,6 @@ static double _right  = 0.0;
 static double _bottom = 0.0;
 static double _top    = 0.0;
 
-/*static int  _mouseX      = 0;
-static int  _mouseY      = 0;
-static bool _mouseLeft   = false;
-static bool _mouseMiddle = false;
-static bool _mouseRight  = false;*/
-
 // Special
 static bool _leftPressed   = false;
 static bool _rightPressed = false;
@@ -43,9 +37,6 @@ static double _objectMatrix[16];
 static double _cameraMatrix[16];
 
 static void zprReshape(int w,int h);
-//static void zprMouse(int button, int state, int x, int y);
-//static void zprMotion(int x, int y);
-//static void zprKey(unsigned char key, int x, int y);
 
 // Special
 static void pressKey(unsigned char key, int x, int y);
@@ -124,9 +115,6 @@ zprInit()
   updateCameraMatrix();
 
   glutReshapeFunc(zprReshape);
-  //glutMouseFunc(zprMouse);
-  //glutMotionFunc(zprMotion);
-  //glutKeyboardFunc(zprKey);
 
   // Special
   glutSpecialFunc(pressSpecialKey);
@@ -333,125 +321,3 @@ void zprExit() {
   exit(0);
 }
 
-/*static void
-zprMouse(int button, int state, int x, int y)
-{
-  _mouseX = x;
-  _mouseY = y;
-
-  if (state==GLUT_UP)
-    switch (button)
-      {
-      case GLUT_LEFT_BUTTON:   _mouseLeft   = false; break;
-      case GLUT_MIDDLE_BUTTON: _mouseMiddle = false; break;
-      case GLUT_RIGHT_BUTTON:  _mouseRight  = false; break;
-      }
-  else
-    switch (button)
-      {
-      case GLUT_LEFT_BUTTON:   _mouseLeft   = true; break;
-      case GLUT_MIDDLE_BUTTON: _mouseMiddle = true; break;
-      case GLUT_RIGHT_BUTTON:  _mouseRight  = true; break;
-      }
-}*/
-
-/*static void
-zprKey(unsigned char key, int x, int y)
-{
-  switch (key)
-   {
-   case 'w':
-     speedZ = 1.f;
-     break;
-   case 's':
-     speedZ = -1.f;
-     break;
-   case 'q':
-     speedY = -1.f;
-     break;
-   case 'e':
-     speedY = 1.f;
-     break;
-   case 'd':
-     speedX = -1.f;
-     break;
-   case 'a':
-     speedX = 1.f;
-     break;
-   }
-
-  cameraPositionX += _cameraMatrix[0] * speed * speedX;
-  cameraPositionY += _cameraMatrix[4] * speed * speedX;
-  cameraPositionZ += _cameraMatrix[8] * speed * speedX;
-  
-  cameraPositionX += _cameraMatrix[1] * speed * speedY;
-  cameraPositionY += _cameraMatrix[5] * speed * speedY;
-  cameraPositionZ += _cameraMatrix[9] * speed * speedY;
-
-  cameraPositionX += _cameraMatrix[2] * speed * speedZ;
-  cameraPositionY += _cameraMatrix[6] * speed * speedZ;
-  cameraPositionZ += _cameraMatrix[10] * speed * speedZ;
-
-  updateCameraMatrix();
-}*/
-
-/*static void
-zprMotion(int x, int y)
-{
-  bool changed = true;
-
-  const int dx = x - _mouseX;
-  const int dy = y - _mouseY;
-
-  if (dx==0 && dy==0)
-    return;
-
-  if (_mouseRight)
-    {
-      objectPositionZ += dy * 0.01f;
-      changed = true;
-    }
-  else if (_mouseLeft)
-    {
-      objectRotationHeading += dx * 0.3f;
-      objectRotationPitch += dy * 0.3f;
-      changed = true;
-    }
-
-  if (changed)
-    {
-      updateObjectMatrix();
-    }
-
-
-  if (_mouseMiddle)
-    {
-      float speed = 0.05f;
-      cameraPositionX += _cameraMatrix[0] * speed * -dx;
-      cameraPositionY += _cameraMatrix[4] * speed * -dx;
-      cameraPositionZ += _cameraMatrix[8] * speed * -dx;
-
-      cameraPositionX += _cameraMatrix[1] * speed * dy;
-      cameraPositionY += _cameraMatrix[5] * speed * dy;
-      cameraPositionZ += _cameraMatrix[9] * speed * dy;
-    }
-  else if (_mouseRight)
-    {
-      float speed = 0.05f;
-      cameraPositionX += _cameraMatrix[2] * speed * -dy;
-      cameraPositionY += _cameraMatrix[6] * speed * -dy;
-      cameraPositionZ += _cameraMatrix[10] * speed * -dy;
-    }
-  else if (_mouseLeft)
-    {
-      cameraRotationHeading += dx * 0.3f;
-      cameraRotationPitch += dy * 0.3f;
-    }
-
-
-  updateCameraMatrix();
-
-  _mouseX = x;
-  _mouseY = y;
-
-}*/
