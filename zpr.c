@@ -21,7 +21,7 @@ static double _right  = 0.0;
 static double _bottom = 0.0;
 static double _top    = 0.0;
 
-// Special
+// Booleans to monitor when keys (controls) are pressed
 static bool _leftPressed   = false;
 static bool _rightPressed = false;
 static bool _upPressed  = false;
@@ -54,25 +54,36 @@ static float cameraPositionX = 0.f;
 static float cameraPositionY = -100.f;
 static float cameraPositionZ = 0.f;
 
+// The position of the helicopter
 static GLfloat helicopterCameraPosX = 0;
 static GLfloat helicopterCameraPosY = -5;
 static GLfloat helicopterCameraPosZ = -10;
 
-// Special
-float speed = 0.5f;
-float speedInc = 0.1f;
+// The speed in each direction
 float speedX = 0.f;
 float speedY = 0.f;
 float speedZ = 0.f;
-float turnSpeed = 0.0f;
-float tiltSpeed = 0.0f;
+
+// Default speed multiplier
+float speed = 0.5f;
+
+// The maxspeed (in each direction)
 float maxSpeed = 2.0f;
+
+// The speed increase step 
+float speedInc = 0.1f;
 float speedDec = 0.05f;
+
+// The turn speed
+float turnSpeed = 0.0f;
 float turnSpeedInc = 1.0f;
 float turnSpeedDec = 0.05f;
+float maxTurnSpeed = 1.5f;
+
+// The tilt speed
+float tiltSpeed = 0.0f;
 float tiltSpeedInc = 0.5f;
 float tiltSpeedDec = 0.05f;
-float maxTurnSpeed = 1.5f;
 float maxTiltSpeed = 1.0f;
 
 static void updateObjectMatrix()
@@ -124,7 +135,6 @@ zprInit()
   glutKeyboardUpFunc(releaseKey);
 }
 
-// Special
 static void pressSpecialKey(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_LEFT : _turnLeftPressed = true; break;
@@ -136,7 +146,7 @@ static void pressSpecialKey(int key, int x, int y) {
 
 static void pressKey(unsigned char key, int x, int y) {
   switch (key) {
-    case 27 : zprExit(); break;
+    case 27 : zprExit(); break; // Exit when 'Escape' is hit
     case 'a' : _leftPressed = true; break;
     case 'd' : _rightPressed = true; break;
     case 'w' : _forwardPressed = true; break;
@@ -146,7 +156,6 @@ static void pressKey(unsigned char key, int x, int y) {
   }
 }
 
-// Special
 static void releaseSpecialKey(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_LEFT : _turnLeftPressed = false; break;
@@ -180,7 +189,9 @@ zprGetCameraMatrix()
 }
 
 void zprUpdate() {
-// Update the helicopter movement.
+  // Update the helicopter movement.
+
+  // Update speedX
   if (_leftPressed)
     speedX += speedInc;
   else if (speedX > 0.0f) {
@@ -193,6 +204,8 @@ void zprUpdate() {
       speedX += speedDec;
       speedX = mymin(speedX, 0.0f);
   }
+
+  // Update speedZ
   if (_forwardPressed) 
     speedZ += speedInc;
   else {
@@ -209,6 +222,8 @@ void zprUpdate() {
       speedZ = mymin(speedZ, 0.0f);
     }
   }
+
+  // Update speedY
   if (_upPressed)
     speedY -= speedInc;
   else {
@@ -288,7 +303,7 @@ void zprUpdate() {
   cameraPositionX += _cameraMatrix[0] * speed * speedX;
   cameraPositionY += _cameraMatrix[4] * speed * speedX;
   cameraPositionZ += _cameraMatrix[8] * speed * speedX;
-  
+
   cameraPositionX += _cameraMatrix[1] * speed * speedY;
   cameraPositionY += _cameraMatrix[5] * speed * speedY;
   cameraPositionZ += _cameraMatrix[9] * speed * speedY;

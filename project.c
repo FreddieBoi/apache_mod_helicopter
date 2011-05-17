@@ -9,14 +9,27 @@
       (a)[1] = (b)[2] * (c)[0] - (c)[2] * (b)[0]; \
       (a)[2] = (b)[0] * (c)[1] - (c)[0] * (b)[1];
 
+// Terrain variables
 int height, width, terrainWidth, terrainHeight, rows, cols;
+
+// Terrain heightmap image data
 unsigned char *imagedata;
-GLfloat tileWidth, tileHeight, heightScale;
+
+// Terrain tile size
+GLfloat tileWidth, tileHeight;
+
+// The height scaling
+GLfloat heightScale;
+
+// The size of the skybox
+GLfloat skyBoxSize;
+
+// The (relative) helicopter position
 static GLfloat helicopterCameraPosX = 0;
 static GLfloat helicopterCameraPosY = -5;
 static GLfloat helicopterCameraPosZ = -10;
 
-// Random pre-generated number for placement/rotation of trees.
+// Random pre-generated numbers for placement/rotation of trees.
 GLfloat treePositions[30] = { 149, 159, 159, 142, 129, 139, 140, 142, 127, 118, 113, 155, 115, 108, 146, 145, 128, 140, 126, 104, 119, 110, 108, 151, 154, 140, 108, 151, 156, 144 };
 GLfloat treeRotations[30] = { 330, 309, 299, 192, 267, 65, 60, 321, 70, 160, 142, 19, 358, 335, 58 };
 
@@ -38,16 +51,6 @@ Model* modelTree;
 Model* modelApache;
 Model* modelRotor;
 Model* modelBackRotor;
-
-// Array used to construct the ground plane.
-GLfloat groundVertices[4*1][3] = {{-100, 0, 100}, {-100, 0, -100}, { 100, 0, -100}, { 100, 0, 100}};
-GLfloat groundNormals[4*1][3] = {{ 0, 1, 0}, { 0, 1, 0}, { 0, 1, 0}, { 0, 1, 0}};
-GLfloat groundTexCoords[4*1][2] = {{0, 0}, {0, 100}, {100, 100}, {100, 0}};
-GLfloat groundColors[4*1][3] = {{1,1,1}, {1,1,1}, {1,1,1}, {1,1,1}};
-int numGroundIndices = 6;
-GLuint groundIndices[6] = { 2, 1, 0, 3, 2, 0 };
-
-GLfloat skyBoxSize;
 
 void norm(GLfloat* a)
 {
@@ -261,9 +264,6 @@ void renderSkyBox()
   skyBoxMatrix[14] = 0;
   glLoadMatrixd(skyBoxMatrix);
 
-  // Enable textures.
-  glEnable(GL_TEXTURE_2D);
-
   // Draw the skybox polygons
   glBindTexture(GL_TEXTURE_2D, texturePositiveZ);
   glBegin(GL_POLYGON);
@@ -449,7 +449,6 @@ void renderHelicopter()
 
   glVertexPointer(3, GL_FLOAT, 0, modelApache->vertexArray);
   glNormalPointer(GL_FLOAT, 0, modelApache->normalArray);
-  //glTexCoordPointer(2, GL_FLOAT, 0, modelApache->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelApache->numIndices, GL_UNSIGNED_INT, modelApache->indexArray);
 
   glBindTexture(GL_TEXTURE_2D, textureRotor);
@@ -458,10 +457,8 @@ void renderHelicopter()
   glPushMatrix();
   glTranslatef(0.1,4.9,-0.10);
   glRotatef(1*360*fmod(getElapsedTime(),60),0,1,0);
-  //glColorPointer(3, GL_FLOAT, 0, modelRotor->colorArray);
   glVertexPointer(3, GL_FLOAT, 0, modelRotor->vertexArray);
   glNormalPointer(GL_FLOAT, 0, modelRotor->normalArray);
-  //glTexCoordPointer(2, GL_FLOAT, 0, modelRotor->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelRotor->numIndices, GL_UNSIGNED_INT, modelRotor->indexArray);
   glPopMatrix();
 
@@ -471,7 +468,6 @@ void renderHelicopter()
   glRotatef(4*360*fmod(getElapsedTime(),60),0,0,1);
   glVertexPointer(3, GL_FLOAT, 0, modelBackRotor->vertexArray);
   glNormalPointer(GL_FLOAT, 0, modelBackRotor->normalArray);
- //glTexCoordPointer(2, GL_FLOAT, 0, modelBackRotor->texCoordArray);
   glDrawElements(GL_TRIANGLES, modelBackRotor->numIndices, GL_UNSIGNED_INT, modelBackRotor->indexArray);
   glPopMatrix();
 
@@ -495,12 +491,6 @@ void handleCollisions()
   GLdouble heliWorldVec[4];
   int index, multindex;
 
-  // TODO: REMOVE SINCE NOT NEEDED?
-  // Clear the previous position
-  for(index = 0; index < 4; index++) {
-    heliWorldVec[index] = 0;
-  }
-
   // Get the new helicopter position in the world using the inverse camera matrix
   // and the helicopter position (in camera coordinates)
   for(index = 0; index < 4; index++) {
@@ -509,6 +499,7 @@ void handleCollisions()
     }
   }
 
+  // Get the height of the helicopter
   GLfloat chopperH = getHeight(heliWorldVec[0], heliWorldVec[2]);
 
   // Check for collision with ground
@@ -542,6 +533,7 @@ void init()
   // Helicopter texture
   helicopterTexture = loadTexture("textures/helicopter.jpg");
 
+  // Rotor texture
   textureRotor = loadTexture("textures/rotor.jpg");
 
   // SkyBox textures
@@ -555,15 +547,21 @@ void init()
   // A heightmap image
   imagedata = readppm("textures/heightmap/heightmap.ppm", &height, &width);
 
-  // terrain and imagedata vars.
+  // The ground plane size
   terrainWidth = terrainHeight = 750;
+
+  // The number of tiles in rows and cols
   rows = height-1;
   cols = width-1;
+
+  // The width and height of each terrain tile
   tileWidth = (float)terrainWidth/cols;
   tileHeight = (float)terrainHeight/rows;
+
+  // Scaling of the terrain heights
   heightScale = 0.3;
 
-  // The size of the SkyBox
+  // The size of the SkyBox sides
   skyBoxSize = 200;
 }
 
@@ -586,6 +584,9 @@ void display()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
+  // Enable textures.
+  glEnable(GL_TEXTURE_2D);
+
   // Fix the SkyBox to the camera.
   renderSkyBox();
 
@@ -598,11 +599,9 @@ void display()
   // Set default material properties
   GLfloat mat_shininess[] = { 50.0 };
   GLfloat mat_diffuseColor[] = { 1.0, 1.0, 1.0, 0.5 };
-  //GLfloat mat_specularColor[] = { 1.0, 1.0, 1.0, 0.5 };
 
   glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
   glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuseColor);
-  //glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specularColor);
 
   // Enable lighting and light 0
   glEnable(GL_LIGHTING);
@@ -642,12 +641,6 @@ void display()
 
   // Render the helicopter
   renderHelicopter();
-
-  // Disable textures
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_TEXTURE_GEN_S);
-  glDisable(GL_TEXTURE_GEN_T);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
   glPopAttrib();
 
